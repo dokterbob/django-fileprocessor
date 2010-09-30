@@ -14,14 +14,14 @@ except:
     REQUIREMENTS = None
 
 setup(
-    name='django-simplesite',
+    name='django-fileprocessor',
     version='0.1',
-    description='A simple pseudo-static site app with menu, submenu and pages.',
+    description='XML-RPC File processing API and client for Django.',
     long_description=README,
     install_requires=REQUIREMENTS,
     author='Mathijs de Bruin',
     author_email='mathijs@mathijsfietst.nl',
-    url='http://github.com/dokterbob/django-simplesite',
+    url='http://github.com/dokterbob/django-fileprocessor',
     packages = find_packages(),
     classifiers=[
         'Development Status :: 4 - Beta',
