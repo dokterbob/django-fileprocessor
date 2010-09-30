@@ -9,6 +9,7 @@ from fileprocessor.models import FileProcessor, FileProcessorBase
 class SimpleTestCase(TestCase):        
     def setUp(self):
         FileProcessor.objects.all().delete()
+        self.instructions = 'http://www.dokterbob.net/files/hart.gif'
 
     def tearDown(self):
         FileProcessor.objects.all().delete()
@@ -16,12 +17,10 @@ class SimpleTestCase(TestCase):
     def test_request(self):
         request_url = reverse('request_file')
         
-        instructions = 'http://www.dokterbob.net/files/hart.gif'
-        
-        baseprocessor =  FileProcessorBase(instructions=instructions)
+        baseprocessor =  FileProcessorBase(instructions=self.instructions)
         checksum = baseprocessor.get_checksum()
         
-        response = self.client.post(request_url, {'instructions': instructions})
+        response = self.client.post(request_url, {'instructions': self.instructions})
         
         processor = FileProcessor.objects.get(pk=checksum)
         
@@ -31,8 +30,13 @@ class SimpleTestCase(TestCase):
     def test_tag(self):
         from django.template import Template, Context
         
-        t = Template('{% load fileprocessor_tags %}{% fileprocessor %}http://www.dokterbob.net/files/hart.gif{% endfileprocessor %}')
-        c = Context()
+        t = Template('{% load fileprocessor_tags %}{% fileprocessor %}{{ instructions }}{% endfileprocessor %}')
+        c = Context({'instructions': self.instructions})
         result = t.render(c)
         
-        logging.debug('RESULT: %s', result)
+        baseprocessor =  FileProcessorBase(instructions=self.instructions)
+        checksum = baseprocessor.get_checksum()
+        
+        processor = FileProcessor.objects.get(pk=checksum)
+        
+        self.assertEquals(processor.get_output(), result)
