@@ -20,7 +20,8 @@ class SimpleTestCase(TestCase):
         baseprocessor =  FileProcessorBase(instructions=self.instructions)
         checksum = baseprocessor.get_checksum()
         
-        response = self.client.post(request_url, {'instructions': self.instructions})
+        response = self.client.post(request_url, {'instructions': self.instructions,
+                                                  'checksum': checksum })
         
         processor = FileProcessor.objects.get(pk=checksum)
         

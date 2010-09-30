@@ -12,8 +12,16 @@ def get_file(request, checksum):
 def request_file(request):
     assert request.method == 'POST'
     assert 'instructions' in request.POST
-
-    processor = FileProcessor(instructions=request.POST['instructions'])
-    processor.save()
+    assert 'checksum' in request.POST
+    
+    try:
+        processor = FileProcessor.objects.get(pk=request.POST['checksum'])
+        
+    except FileProcessor.DoesNotExist:
+        processor = FileProcessor(instructions=request.POST['instructions'])
+        
+        assert processor.get_checksum() == request.POST['checksum']
+        
+        processor.save()
     
     return HttpResponse(processor.get_output())

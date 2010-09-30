@@ -22,5 +22,6 @@ class FileProcessorHead(FileProcessorBase):
 
             import urllib2
     
-            return urllib2.urlopen(ENDPOINT_URL, {'instructions': self.instructions})
+            return urllib2.urlopen(ENDPOINT_URL, {'instructions': self.instructions,
+                                                  'checksum': self.get_checksum()})
         
