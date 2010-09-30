@@ -16,7 +16,7 @@ except:
 setup(
     name='django-fileprocessor',
     version='0.1',
-    description='XML-RPC File processing API and client for Django.',
+    description='File processing API (server and client) for Django.',
     long_description=README,
     install_requires=REQUIREMENTS,
     author='Mathijs de Bruin',
@@ -24,7 +24,7 @@ setup(
     url='http://github.com/dokterbob/django-fileprocessor',
     packages = find_packages(),
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 3 - Alpha',
         'Environment :: Web Environment',
         'Framework :: Django',
         'Intended Audience :: Developers',
