@@ -1,1 +1,2 @@
-# Create your views here.
+def get_file(request, filename, extension):
+    return None
