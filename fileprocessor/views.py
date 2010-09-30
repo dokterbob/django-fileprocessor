@@ -1,2 +1,2 @@
-def get_file(request, filename, extension):
+def get_file(request, basename, extension):
     return None
