@@ -27,3 +27,12 @@ class SimpleTestCase(TestCase):
         
         self.assertEquals(processor.output, processor.get_output())
         self.assertEquals(response.content, processor.get_output())
+    
+    def test_tag(self):
+        from django.template import Template, Context
+        
+        t = Template('{% load fileprocessor_tags %}{% fileprocessor %}http://www.dokterbob.net/files/hart.gif{% endfileprocessor %}')
+        c = Context()
+        result = t.render(c)
+        
+        logging.debug('RESULT: %s', result)
