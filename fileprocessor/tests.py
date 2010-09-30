@@ -1,3 +1,5 @@
+import logging
+
 from django.test import TestCase
 
 from django.core.urlresolvers import reverse
@@ -8,7 +10,7 @@ class SimpleTestCase(TestCase):
     def test_request(self):
         request_url = reverse('request_file')
         
-        instructions = 'http://www.google.com/'
+        instructions = 'http://www.dokterbob.net/files/hart.gif'
         
         baseprocessor =  FileProcessorBase(instructions=instructions)
         checksum = baseprocessor.get_checksum()
@@ -17,4 +19,5 @@ class SimpleTestCase(TestCase):
         
         processor = FileProcessor.objects.get(pk=checksum)
         
-        self.assertEquals(response.content, processor.get_absolute_url())
+        self.assertEquals(processor.output, processor.get_output())
+        self.assertEquals(response.content, processor.get_output())

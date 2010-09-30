@@ -56,6 +56,26 @@ class FileProcessorBase(object):
         
         return self.checksum
     
+    def get_output(self):
+        """ Get the replacement output. This code should replace the orignal
+            tag - and can be cached on the client side efficiently. """
+
+        if self.is_processed():
+            assert getattr(self, 'output', False), \
+                    'No output has been generated during processing.'
+
+            return self.output
+        
+        self.process()
+
+        assert self.is_processed, 'A processed file should now have been generated.'
+        
+        self.output = self.get_output()
+
+        logging.debug('Returning output: %s' % self.output)
+        
+        return self.output
+
     def get_file_url(self):
         """ Get the URL for a rendered version of the specified instructiions. """
         raise NotImplementedError
@@ -80,15 +100,14 @@ class FileProcessor(models.Model, FileProcessorBase):
     """
     checksum = models.CharField(primary_key=True, max_length=20)
     instructions = models.TextField()
+    output = models.TextField(blank=True, null=True)
     processed_file = models.FileField(upload_to='processed_file', null=True)
+    processed = models.BooleanField(default=False)
     
     def is_processed(self):
         """ Has the current file already been processed? """
         
-        if self.processed_file:
-            return True
-        
-        return False
+        return self.processed
     
     def process(self):
         """ Process the instructions, resulting in processed_file.
@@ -101,10 +120,11 @@ class FileProcessor(models.Model, FileProcessorBase):
             >>> FileProcessor.objects.all().delete()
             >>> f = FileProcessor(instructions='http://www.google.com')
             >>> f.get_file_url()
-            u'/media/processed_file/738ddf35b3a85a7a6ba7b232bd3d5f1e4d284ad1.html'
-            >>> f.delete()
+            u'/media/processed_file/738ddf35b3a85a7a6ba7b232bd3d5f1e4d284ad1.gif'
             >>> f.get_absolute_url()
             '/fileprocessor/738ddf35b3a85a7a6ba7b232bd3d5f1e4d284ad1/'
+            >>> f.processed_file.delete()
+            >>> f.delete()
             
             """
         
@@ -122,7 +142,9 @@ class FileProcessor(models.Model, FileProcessorBase):
         from django.core.files.base import File, ContentFile
         f = ContentFile(infile.read())
 
-        self.save_processed_file(f, 'html')
+        self.output = '<img src="%s" />' % self.get_absolute_url()
+        self.processed = True
+        self.save_processed_file(f, 'gif')
     
     def save_processed_file(self, content, extension):
         filename = '%(basename)s.%(extension)s' \
@@ -144,8 +166,10 @@ class FileProcessor(models.Model, FileProcessorBase):
         
         assert self.is_processed, 'A processed file should now have been generated.'
         
-        logging.debug('Returning URL: %s' % self.get_file_url())
-        return self.get_file_url()
+        file_url = self.get_file_url()
+        
+        logging.debug('Returning URL: %s' % file_url)
+        return file_url        
     
     @models.permalink
     def get_absolute_url(self):

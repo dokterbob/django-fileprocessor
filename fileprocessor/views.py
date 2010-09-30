@@ -16,4 +16,4 @@ def request_file(request):
     processor = FileProcessor(instructions=request.POST['instructions'])
     processor.save()
     
-    return HttpResponse(processor.get_absolute_url())
+    return HttpResponse(processor.get_output())
