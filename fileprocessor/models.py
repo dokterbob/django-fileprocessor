@@ -10,10 +10,10 @@ class FileProcessorBase(object):
     >>> f = FileProcessorBase(instructions='my instructions')
     >>> f.get_checksum()
     'b29f9e2949f7877561a7dd380543afc2e941516c'
-    >>> f.get_url()
+    >>> f.get_absolute_url()
     Traceback (most recent call last):
       File "<console>", line 1, in <module>
-      File "/Users/drbob/Development/testproj/env/src/django-fileprocessor/fileprocessor/models.py", line 23, in get_url
+      File "/Users/drbob/Development/testproj/env/src/django-fileprocessor/fileprocessor/models.py", line 23, in get_absolute_url
         raise NotImplementedError
     NotImplementedError
     >>> unicode(f)
@@ -51,7 +51,7 @@ class FileProcessorBase(object):
             
         return self.checksum
     
-    def get_url(self):
+    def get_absolute_url(self):
         """ Get the URL for a rendered version of the specified instructiions. """
         raise NotImplementedError
     
@@ -95,7 +95,7 @@ class FileProcessor(models.Model, FileProcessorBase):
             
             >>> FileProcessor.objects.all().delete()
             >>> f = FileProcessor(instructions='http://www.google.com')
-            >>> f.get_url()
+            >>> f.get_absolute_url()
             u'/media/processed_file/738ddf35b3a85a7a6ba7b232bd3d5f1e4d284ad1.html'
             >>> f.delete()
             
@@ -128,7 +128,7 @@ class FileProcessor(models.Model, FileProcessorBase):
         
         assert self.processed_file.name.endswith(filename), 'Wrong filename. This is weird.'
     
-    def get_url(self):
+    def get_absolute_url(self):
         """ See whether we already have done processing. If so, give back the resulting URL. """
         if self.is_processed():
             return self.processed_file.url
@@ -137,8 +137,8 @@ class FileProcessor(models.Model, FileProcessorBase):
         
         assert self.is_processed, 'A processed file should now have been generated.'
         
-        logging.debug('Returning URL: %s' % self.get_url())
-        return self.get_url()
+        logging.debug('Returning URL: %s' % self.get_absolute_url())
+        return self.get_absolute_url()
         
     def save(self, *args, **kwargs):
         """ Make sure we generate a checksum before saving. """
