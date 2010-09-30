@@ -3,7 +3,7 @@ from fileprocessor.models import FileProcessorBase
 from fileprocessor.client.settings import ENDPOINT_URL
 
 class FileProcessorHead(FileProcessorBase):
-    def get_absolute_url(self):
+    def get_output(self):
         """ Get the absolute URL for the FileProcessor specified by instructions. """
         
         import urllib2

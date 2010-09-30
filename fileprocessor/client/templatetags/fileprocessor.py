@@ -4,7 +4,6 @@ from fileprocessor.client.models import FileProcessorHead
 
 register = template.Library()
 
-
 @register.tag
 def fileprocessor(parser, token):
     nodelist = parser.parse(('endfileprocessor',))
