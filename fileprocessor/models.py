@@ -16,6 +16,8 @@ class FileProcessorBase(object):
       File "/Users/drbob/Development/testproj/env/src/django-fileprocessor/fileprocessor/models.py", line 23, in get_url
         raise NotImplementedError
     NotImplementedError
+    >>> unicode(f)
+    u'b29f9e2949f7877561a7dd380543afc2e941516c'
     
     """
     
@@ -33,25 +35,31 @@ class FileProcessorBase(object):
     
     def get_checksum(self):
         """ Calculate a checksum for the specified instructions. """
-        
+
         assert self.instructions, 'No instructions to calculate checksum for.'
-        return sha1(self.instructions).hexdigest()
+
+        checksum = getattr(self, 'checksum', False)
+        
+        return checksum or sha1(self.instructions).hexdigest()
     
     def get_url(self):
         """ Get the URL for a rendered version of the specified instructiions. """
         raise NotImplementedError
+    
+    def __unicode__(self):
+        return self.get_checksum()
 
-class FileProcessor(FileProcessorBase, models.Model):
+class FileProcessor(models.Model, FileProcessorBase):
     """ Basic skeleton for file processing. 
     
     >>> f = FileProcessor(instructions='my instructions')
     >>> f.save()
     >>> f.checksum
     'b29f9e2949f7877561a7dd380543afc2e941516c'
-    >>> f.get_checksum()
-    'b29f9e2949f7877561a7dd380543afc2e941516c'
-    >>> f.is_processed()
-    False
+    >>> f
+    <FileProcessor: b29f9e2949f7877561a7dd380543afc2e941516c>
+    >>> FileProcessor.objects.all()
+    [<FileProcessor: b29f9e2949f7877561a7dd380543afc2e941516c>]
     
     """
     checksum = models.CharField(primary_key=True, max_length=20)
