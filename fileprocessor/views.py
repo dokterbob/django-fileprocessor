@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404, redirect
+from django.http import HttpResponse
 
 from fileprocessor.models import FileProcessor
 
@@ -12,6 +13,7 @@ def request_file(request):
     assert request.method == 'POST'
     assert 'instructions' in request.POST
 
-    processor = FileProcessor(instructions.POST['instructions'])
+    processor = FileProcessor(instructions=request.POST['instructions'])
+    processor.save()
     
     return HttpResponse(processor.get_absolute_url())

@@ -38,9 +38,12 @@ class FileProcessorBase(object):
     def calculate_checksum(self):
         assert self.instructions, 'No instructions to calculate checksum for.'
 
-        logging.debug('Calculating checksum for %s', self.instructions)
+        checksum = sha1(self.instructions).hexdigest()
         
-        return sha1(self.instructions).hexdigest()
+        logging.debug('Calculated checksum for \'%s\', result: %s', self.instructions, checksum)
+        
+        return checksum
+
 
     def get_checksum(self):
         """ Calculate a checksum for the specified instructions. """
@@ -48,7 +51,9 @@ class FileProcessorBase(object):
 
         if not self.checksum:
             self.checksum = self.calculate_checksum()
-            
+
+        logging.debug('Returning checksum: %s', self.checksum)
+        
         return self.checksum
     
     def get_file_url(self):

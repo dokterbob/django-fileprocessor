@@ -1,23 +1,20 @@
-"""
-This file demonstrates two different styles of tests (one doctest and one
-unittest). These will both pass when you run "manage.py test".
-
-Replace these with more appropriate tests for your application.
-"""
-
 from django.test import TestCase
 
-class SimpleTest(TestCase):
-    def test_basic_addition(self):
-        """
-        Tests that 1 + 1 always equals 2.
-        """
-        self.failUnlessEqual(1 + 1, 2)
+from django.core.urlresolvers import reverse
 
-__test__ = {"doctest": """
-Another way to test that 1 + 1 is equal to 2.
+from fileprocessor.models import FileProcessor, FileProcessorBase
 
->>> 1 + 1 == 2
-True
-"""}
-
+class SimpleTestCase(TestCase):        
+    def test_request(self):
+        request_url = reverse('request_file')
+        
+        instructions = 'http://www.google.com/'
+        
+        baseprocessor =  FileProcessorBase(instructions=instructions)
+        checksum = baseprocessor.get_checksum()
+        
+        response = self.client.post(request_url, {'instructions': instructions})
+        
+        processor = FileProcessor.objects.get(pk=checksum)
+        
+        self.assertEquals(response.content, processor.get_absolute_url())
