@@ -125,6 +125,8 @@ class FileProcessor(models.Model, FileProcessorBase):
         logging.debug('Saving file as %s' % filename)
         self.processed_file.save(filename, content)
         self.processed_file.close()
+        
+        assert self.processed_file.name.endswith(filename), 'Wrong filename. This is weird.'
     
     def get_url(self):
         """ See whether we already have done processing. If so, give back the resulting URL. """
