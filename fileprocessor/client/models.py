@@ -8,6 +8,7 @@ class FileProcessorHead(FileProcessorBase):
         """ Get the absolute URL for the FileProcessor specified by instructions. """
         
         if ENDPOINT_URL == 'LOCAL':
+            # No need to cache if running locally
             logging.debug('Running processing locally.')
             
             from fileprocessor.models import FileProcessor
@@ -16,6 +17,7 @@ class FileProcessorHead(FileProcessorBase):
             return processor.get_output()
         
         else:
+            # Cache using key fileprocessor-<checksum> if not local
             logging.debug('Fetching output from %s', ENDPOINT_URL)
 
             import urllib2
