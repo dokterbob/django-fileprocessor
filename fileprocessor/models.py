@@ -98,6 +98,8 @@ class FileProcessor(models.Model, FileProcessorBase):
             >>> f.get_file_url()
             u'/media/processed_file/738ddf35b3a85a7a6ba7b232bd3d5f1e4d284ad1.html'
             >>> f.delete()
+            >>> f.get_absolute_url()
+            '/fileprocessor/738ddf35b3a85a7a6ba7b232bd3d5f1e4d284ad1/'
             
             """
         
@@ -139,6 +141,10 @@ class FileProcessor(models.Model, FileProcessorBase):
         
         logging.debug('Returning URL: %s' % self.get_file_url())
         return self.get_file_url()
+    
+    @models.permalink
+    def get_absolute_url(self):
+        return ('get_file', None, {'checksum': self.get_checksum()})
         
     def save(self, *args, **kwargs):
         """ Make sure we generate a checksum before saving. """
