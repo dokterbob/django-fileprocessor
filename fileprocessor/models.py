@@ -7,7 +7,7 @@ from django.db import models
 class FileProcessorBase(object):
     """ Base class for FileProcessor. 
     
-    >>> f = FileProcessorBase('my instructions')
+    >>> f = FileProcessorBase(instructions='my instructions')
     >>> f.get_checksum()
     'b29f9e2949f7877561a7dd380543afc2e941516c'
     >>> f.get_url()
@@ -21,6 +21,8 @@ class FileProcessorBase(object):
     
     """
     
+    checksum = None
+    
     def __init__(self, instructions=None):
         super(FileProcessorBase, self).__init__()
         
@@ -33,14 +35,21 @@ class FileProcessorBase(object):
         assert self.instructions, 'No instructions at initialization.'
         logging.debug('Processor instantiated with instructions: %s', self.instructions)
     
+    def calculate_checksum(self):
+        assert self.instructions, 'No instructions to calculate checksum for.'
+
+        logging.debug('Calculating checksum for %s', self.instructions)
+        
+        return sha1(self.instructions).hexdigest()
+
     def get_checksum(self):
         """ Calculate a checksum for the specified instructions. """
 
-        assert self.instructions, 'No instructions to calculate checksum for.'
 
-        checksum = getattr(self, 'checksum', False)
-        
-        return checksum or sha1(self.instructions).hexdigest()
+        if not self.checksum:
+            self.checksum = self.calculate_checksum()
+            
+        return self.checksum
     
     def get_url(self):
         """ Get the URL for a rendered version of the specified instructiions. """
@@ -67,11 +76,6 @@ class FileProcessor(models.Model, FileProcessorBase):
     checksum = models.CharField(primary_key=True, max_length=20)
     instructions = models.TextField()
     processed_file = models.FileField(upload_to='processed_file', null=True)
-
-    def __init__(self, instructions=None, *args, **kwargs):
-        """ It makes sense to do a call like FileProcessor('my instructions'). """
-        kwargs.update({'instructions': instructions})
-        super(FileProcessor, self).__init__(*args, **kwargs)
     
     def is_processed(self):
         """ Has the current file already been processed? """
@@ -90,9 +94,10 @@ class FileProcessor(models.Model, FileProcessorBase):
             - we store the results in processed_file 
             
             >>> FileProcessor.objects.all().delete()
-            >>> f = FileProcessor('http://www.google.com')
+            >>> f = FileProcessor(instructions='http://www.google.com')
             >>> f.get_url()
             u'/media/processed_file/738ddf35b3a85a7a6ba7b232bd3d5f1e4d284ad1.html'
+            >>> f.delete()
             
             """
         
@@ -105,15 +110,21 @@ class FileProcessor(models.Model, FileProcessorBase):
         
         # from django.core.files import File
         # f = File(infile.read())
+        
+
         from django.core.files.base import File, ContentFile
         f = ContentFile(infile.read())
-        
+
+        self.save_processed_file(f, 'html')
+    
+    def save_processed_file(self, content, extension):
         filename = '%(basename)s.%(extension)s' \
                         % {'basename': self.get_checksum(),
-                           'extension': 'html'}
+                           'extension': extension}
         
         logging.debug('Saving file as %s' % filename)
-        self.processed_file.save(filename, f)
+        self.processed_file.save(filename, content)
+        self.processed_file.close()
     
     def get_url(self):
         """ See whether we already have done processing. If so, give back the resulting URL. """
@@ -131,5 +142,6 @@ class FileProcessor(models.Model, FileProcessorBase):
         """ Make sure we generate a checksum before saving. """
         
         self.checksum = self.get_checksum()
+        
         logging.debug('Saving file processor with checksum: %s', self.checksum)
         super(FileProcessor, self).save(*args, **kwargs)
