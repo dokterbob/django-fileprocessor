@@ -155,7 +155,7 @@ class FileProcessor(models.Model, FileProcessorBase):
         self.processed_file.save(filename, content)
         self.processed_file.close()
         
-        assert self.processed_file.name.endswith(filename), 'Wrong filename. This is weird.'
+        assert self.processed_file.name.endswith(filename), 'Different filename. This is weird.'
     
     def get_file_url(self):
         """ See whether we already have done processing. If so, give back the resulting URL. """

@@ -7,6 +7,12 @@ from django.core.urlresolvers import reverse
 from fileprocessor.models import FileProcessor, FileProcessorBase
 
 class SimpleTestCase(TestCase):        
+    def setUp(self):
+        FileProcessor.objects.all().delete()
+
+    def tearDown(self):
+        FileProcessor.objects.all().delete()
+        
     def test_request(self):
         request_url = reverse('request_file')
         
