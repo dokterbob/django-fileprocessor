@@ -105,6 +105,18 @@ class FileProcessor(models.Model, FileProcessorBase):
         return False
     
     def preprocess(self):
+        """ Do preprocessing. Basically, generate the output necessary for
+            including/embedding/displaying the file on site. For an image
+            this should just be an image tag, but we want to know the size
+            right away. So we would want to do something like this:
+            
+            - parse instructions
+            - find image dimensions therein
+            - find scaling/cropping properties therein
+            - calculate destination properties from them
+            - generate proper image tag with right dimensions in output
+        """
+        
         self.output = '<img src="%s" />' % self.get_absolute_url()
         self.save()
 
@@ -115,6 +127,12 @@ class FileProcessor(models.Model, FileProcessorBase):
             - instructions is a URL
             - we fetch the URL
             - we store the results in processed_file 
+            
+            Generally, this structure goes as follows:
+            - parse instructions
+            - get or create a file 
+            - do stuff with the file (ie. scale an image)
+            - write the file to database
 
             >>> FileProcessor.objects.all().delete()
             >>> f = FileProcessor(instructions='http://www.dokterbob.net/files/hart.gif')
