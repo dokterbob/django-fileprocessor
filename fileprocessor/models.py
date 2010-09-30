@@ -44,7 +44,6 @@ class FileProcessorBase(object):
         
         return checksum
 
-
     def get_checksum(self):
         """ Calculate a checksum for the specified instructions. """
 
@@ -60,21 +59,7 @@ class FileProcessorBase(object):
         """ Get the replacement output. This code should replace the orignal
             tag - and can be cached on the client side efficiently. """
 
-        if self.is_processed():
-            assert getattr(self, 'output', False), \
-                    'No output has been generated during processing.'
-
-            return self.output
-        
-        self.process()
-
-        assert self.is_processed, 'A processed file should now have been generated.'
-        
-        self.output = self.get_output()
-
-        logging.debug('Returning output: %s' % self.output)
-        
-        return self.output
+        raise NotImplementedError
 
     def get_file_url(self):
         """ Get the URL for a rendered version of the specified instructiions. """
@@ -102,13 +87,27 @@ class FileProcessor(models.Model, FileProcessorBase):
     instructions = models.TextField()
     output = models.TextField(blank=True, null=True)
     processed_file = models.FileField(upload_to='processed_file', null=True)
-    processed = models.BooleanField(default=False)
     
     def is_processed(self):
         """ Has the current file already been processed? """
         
-        return self.processed
+        if self.processed_file:
+            return True
+        
+        return False        
     
+    def is_preprocessed(self):
+        """ Is preprocessed? """
+        
+        if self.output:
+            return True
+        
+        return False
+    
+    def preprocess(self):
+        self.output = '<img src="%s" />' % self.get_absolute_url()
+        self.save()
+
     def process(self):
         """ Process the instructions, resulting in processed_file.
         
@@ -116,15 +115,18 @@ class FileProcessor(models.Model, FileProcessorBase):
             - instructions is a URL
             - we fetch the URL
             - we store the results in processed_file 
-            
+
             >>> FileProcessor.objects.all().delete()
-            >>> f = FileProcessor(instructions='http://www.google.com')
+            >>> f = FileProcessor(instructions='http://www.dokterbob.net/files/hart.gif')
+            >>> f.get_output()
+            '<img src="/fileprocessor/1a3d8c82fa67e422cf94c567bda53f3adfe43025/" />'
             >>> f.get_file_url()
-            u'/media/processed_file/738ddf35b3a85a7a6ba7b232bd3d5f1e4d284ad1.gif'
-            >>> f.get_absolute_url()
-            '/fileprocessor/738ddf35b3a85a7a6ba7b232bd3d5f1e4d284ad1/'
-            >>> f.processed_file.delete()
+            u'/media/processed_file/1a3d8c82fa67e422cf94c567bda53f3adfe43025.gif'
+            >>> f.get_checksum()
+            '1a3d8c82fa67e422cf94c567bda53f3adfe43025'
             >>> f.delete()
+            >>> 
+            
             
             """
         
@@ -142,8 +144,6 @@ class FileProcessor(models.Model, FileProcessorBase):
         from django.core.files.base import File, ContentFile
         f = ContentFile(infile.read())
 
-        self.output = '<img src="%s" />' % self.get_absolute_url()
-        self.processed = True
         self.save_processed_file(f, 'gif')
     
     def save_processed_file(self, content, extension):
@@ -174,6 +174,23 @@ class FileProcessor(models.Model, FileProcessorBase):
     @models.permalink
     def get_absolute_url(self):
         return ('get_file', None, {'checksum': self.get_checksum()})
+
+    def get_output(self):
+        if self.is_preprocessed():
+            assert getattr(self, 'output', False), \
+                    'No output has been generated during preprocessing.'
+
+            return self.output
+        
+        self.preprocess()
+
+        assert self.is_preprocessed, 'A preprocessed file should now have been generated.'
+        
+        self.output = self.get_output()
+
+        logging.debug('Returning output: %s' % self.output)
+        
+        return self.output
         
     def save(self, *args, **kwargs):
         """ Make sure we generate a checksum before saving. """
